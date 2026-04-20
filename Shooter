@@ -1,0 +1,121 @@
+javascript:(function(){
+if(document.getElementById('miniShooterGame')) return;
+
+let game = document.createElement('div');
+game.id = 'miniShooterGame';
+game.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:black;color:white;z-index:999999;font-family:sans-serif;overflow:hidden;touch-action:none;";
+document.body.appendChild(game);
+
+let state = JSON.parse(localStorage.getItem('miniShooterSave')||'{}');
+state.coins = state.coins||0;
+state.power = state.power||1;
+state.fireRate = state.fireRate||500;
+state.skin = state.skin||'red';
+
+let lastShot = 0;
+
+function save(){
+  localStorage.setItem('miniShooterSave', JSON.stringify(state));
+}
+
+function spawnTarget(){
+  let t = document.createElement('div');
+  t.style = `
+    position:absolute;
+    width:70px;height:70px;
+    border-radius:50%;
+    background:${state.skin};
+    left:${Math.random()*85}%;
+    top:${Math.random()*85}%;
+  `;
+  
+  t.addEventListener('touchstart', hit);
+  t.addEventListener('click', hit);
+
+  function hit(e){
+    e.stopPropagation();
+    state.coins += state.power;
+    t.remove();
+    save();
+    updateUI();
+  }
+
+  game.appendChild(t);
+  setTimeout(()=>t.remove(),4000);
+}
+
+setInterval(spawnTarget,900);
+
+function shootEffect(x,y){
+  let flash = document.createElement('div');
+  flash.style = `
+    position:absolute;
+    width:20px;height:20px;
+    background:white;
+    border-radius:50%;
+    left:${x-10}px;
+    top:${y-10}px;
+  `;
+  game.appendChild(flash);
+  setTimeout(()=>flash.remove(),120);
+}
+
+function handleShoot(e){
+  let now = Date.now();
+  if(now - lastShot < state.fireRate) return;
+  lastShot = now;
+
+  let x = e.touches ? e.touches[0].clientX : e.clientX;
+  let y = e.touches ? e.touches[0].clientY : e.clientY;
+
+  shootEffect(x,y);
+}
+
+game.addEventListener('touchstart', handleShoot);
+game.addEventListener('click', handleShoot);
+
+let ui = document.createElement('div');
+ui.style = "position:absolute;bottom:0;left:0;width:100%;background:rgba(0,0,0,0.8);padding:15px;box-sizing:border-box;";
+game.appendChild(ui);
+
+function updateUI(){
+  ui.innerHTML = `
+    <div style="font-size:18px;margin-bottom:10px;">
+      Coins: ${state.coins} | Power: ${state.power} | Speed: ${Math.round(1000/state.fireRate)}
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button style="flex:1;padding:15px;font-size:16px;" id="pwr">Power (10)</button>
+      <button style="flex:1;padding:15px;font-size:16px;" id="rate">Faster (10)</button>
+      <button style="flex:1;padding:15px;font-size:16px;" id="skin">Skin</button>
+      <button style="flex:1;padding:15px;font-size:16px;" id="exit">Exit</button>
+    </div>
+  `;
+
+  document.getElementById('pwr').ontouchstart = ()=>{
+    if(state.coins>=10){
+      state.coins-=10;
+      state.power++;
+      save(); updateUI();
+    }
+  };
+
+  document.getElementById('rate').ontouchstart = ()=>{
+    if(state.coins>=10 && state.fireRate>100){
+      state.coins-=10;
+      state.fireRate-=60;
+      save(); updateUI();
+    }
+  };
+
+  document.getElementById('skin').ontouchstart = ()=>{
+    state.skin = state.skin==='red' ? 'lime' : state.skin==='lime' ? 'cyan' : 'orange';
+    save(); updateUI();
+  };
+
+  document.getElementById('exit').ontouchstart = ()=>{
+    game.remove();
+  };
+}
+
+updateUI();
+})();
