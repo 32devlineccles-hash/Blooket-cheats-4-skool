@@ -4,3 +4,8 @@ ALSO DID NOT MAKE THIS CODE THE OG LINK IS
 https://github.com/nightshiftgaming685-a11y/Blooket-cheats-plus/blob/main/Blooket-cheats-plus.min.js
 
 Also Has games =)
+
+
+credits to: Me,Eylend,Layne
+
+we all make games for ipad and stuff its a bookmark javascript
